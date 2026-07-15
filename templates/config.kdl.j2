@@ -1,0 +1,6 @@
+http-server default {
+    bind "{{ iocaine_host }}:{{ iocaine_port }}"
+    use handler-from=default
+}
+
+declare-handler default language=roto
