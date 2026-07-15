@@ -50,3 +50,77 @@
     - always
     - conf
   notify: Restart iocaine service
+
+- name: Download robots.json to localhost
+  local_action:
+    module: ansible.builtin.get_url
+    url:
+      https://github.com/ai-robots-txt/ai.robots.txt/raw/refs/heads/main/robots.json
+    dest: "{{ inventory_dir }}/.cache/robots.json"
+    mode: 0644
+  run_once: True
+  tags:
+    - conf
+
+- name: "Copy robots.json"
+  copy:
+    src: "{{ inventory_dir }}/.cache/robots.json"
+    dest: "/usr/share/data/ai.robots.txt-robots.json"
+    owner: root
+    mode: 0644
+
+- name: Create 00-ai.robots.txt.kdl
+  ansible.builtin.copy:
+    content: >
+      declare-handler default {
+        ai-robots-txt-path "/usr/share/data/ai.robots.txt-robots.json"
+      }
+    dest: /etc/iocaine/config.d/00-ai.robots.txt.kdl
+  tags:
+    - conf
+  notify: Restart iocaine service
+
+- name: Download shit
+  ansible.builtin.get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+  tags:
+    - conf
+  with_items:
+    - url: "https://archive.org/download/GeorgeOrwells1984/1984_djvu.txt"
+      dest: /usr/share/data/1984.txt
+    - url: "https://archive.org/download/ost-english-brave_new_world_aldous_huxley/Brave_New_World_Aldous_Huxley_djvu.txt"
+      dest: /usr/share/data/brave-new-world.txt
+
+- name: Create 01-sources.kdl
+  ansible.builtin.copy:
+    content: >
+      declare-handler default {
+        sources {
+          training-corpus "/opt/iocaine/share/data/1984.txt" \
+                          "/opt/iocaine/share/data/brave-new-world.txt"
+          wordlists "/opt/iocaine/share/data/words.txt"
+        }
+      }
+    dest: /etc/iocaine/config.d/01-sources.kdl
+  tags:
+    - conf
+  notify: Restart iocaine service
+
+- name: Create 02-metrics.kdl
+  ansible.builtin.copy:
+    content: >
+      prometheus-server metrics {
+        bind "127.0.0.1:42042"
+        persist-path "/var/lib/iocaine/qmk-metrics.json"
+        persist-interval "1h"
+      }
+
+      http-server default {
+        use metrics=metrics
+      }
+    dest: /etc/iocaine/config.d/02-metrics.kdl
+  tags:
+    - conf
+  notify: Restart iocaine service
