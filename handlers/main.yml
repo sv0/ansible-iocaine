@@ -1,0 +1,5 @@
+---
+- name: Restart iocaine service
+  ansible.builtin.service:
+    name: iocaine
+    state: restarted
