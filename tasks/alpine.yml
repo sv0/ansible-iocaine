@@ -1,0 +1,62 @@
+---
+- name: Install required packages
+  ansible.builtin.package:
+    name:
+      - zstd
+      - zip
+      - tar
+
+- name: Get iocaine version
+  block:
+    - name: Get iocaine version
+      ansible.builtin.command:
+        argv:
+          - /usr/local/bin/iocaine
+          - "--version"
+      register: result
+      changed_when: false
+      failed_when: false
+
+    - name: Debug result
+      ansible.builtin.debug:
+        var: result
+
+    - name: Set fact iocaine_version_installed
+      ansible.builtin.set_fact:
+        iocaine_version_installed:
+          "{{ result.stdout_lines[0] | default('', True) }}"
+  tags:
+    - install
+
+- name: Debug iocaine_version_installed
+  ansible.builtin.debug:
+    var: iocaine_version_installed
+  tags:
+    - install
+
+- name: Download iocaine archive to localhost
+  local_action:
+    module: ansible.builtin.get_url
+    url:
+      https://iocaine.madhouse-project.org/_/stable/tarball/{{ ansible_facts['architecture'] }}-linux
+    dest: "{{ inventory_dir }}/.cache/iocaine-{{ ansible_facts['architecture'] }}-linux"
+    mode: 0644
+    # TODO check checksum
+    # checksum:
+    #   "sha256:https://iocaine.example/iocaine_{{ iocaine_version }}_checksums.txt"
+  run_once: True
+  tags:
+    - install
+  when:
+    - (iocaine_version not in iocaine_version_installed)
+
+- name: Extract iocaine
+  ansible.builtin.unarchive:
+    src: "{{ inventory_dir }}/.cache/iocaine-{{ ansible_facts['architecture'] }}-linux"
+    dest: /usr/local/bin
+    include: iocaine
+  when:
+    - (iocaine_version not in iocaine_version_installed)
+  tags:
+    - install
+    # notify: Restart iocaine
