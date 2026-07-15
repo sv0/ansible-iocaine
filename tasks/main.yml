@@ -1,0 +1,52 @@
+---
+- name: Include checks/asserts
+  ansible.builtin.include_tasks:
+    file: asserts.yml
+
+- name: Create cache directory
+  local_action:
+    module: ansible.builtin.file
+    path: "{{ inventory_dir }}/.cache"
+    state: directory
+    mode: 0755
+  run_once: True
+
+- name: Initialize distribution-specific variables
+  ansible.builtin.include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}_{{ ansible_distribution_major_version }}.yml"
+    - "{{ ansible_distribution | lower }}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+  tags:
+    - always
+
+- name: Debug some shit
+  ansible.builtin.debug:
+    var: ansible_facts
+
+- name: Include distribution specific tasks
+  ansible.builtin.include_tasks: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution | lower }}.yml"
+    - "{{ ansible_os_family | lower }}.yml"
+    - unknown.yml
+
+- name: Create directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /etc/iocaine/config.d
+    - /usr/share/data
+    - /var/lib/iocaine
+
+- name: Configure iocaine
+  ansible.builtin.template:
+    src: config.kdl.j2
+    dest: /etc/iocaine/config.kdl
+    mode: 0644
+  tags:
+    - always
+    - conf
+  notify: Restart iocaine service
