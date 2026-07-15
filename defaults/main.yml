@@ -1,0 +1,12 @@
+---
+os_supported:
+  debian:
+    min_version: 12
+    max_version: 14
+  alpine:
+    min_version: 3
+    max_version: 4
+
+iocaine_port: 42069  # default
+iocaine_host: '127.0.0.1'  # default
+iocaine_version: '3.5.0'
