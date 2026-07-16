@@ -1,0 +1,13 @@
+---
+- name: Add iocaine repository
+  ansible.builtin.get_url:
+    url: https://iocaine.madhouse-project.org/_/debian/iocaine.sources
+    dest: /etc/apt/sources.list.d/iocaine.sources
+    mode: "0644"
+
+- name: Install required packages on Debian
+  ansible.builtin.package:
+    name:
+      - dash  # POSIX-compliant shell
+      - iocaine
+    cache_valid_time: 604800  # 1 week
