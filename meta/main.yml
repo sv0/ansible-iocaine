@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: iocaine
+  namespace: sv0
+  author: slavik@svyrydiuk.eu
+  description: Ansible role to install iocaine, defense mechanism against LLM scrapers.
+  license: MIT
+  min_ansible_version: "2.13"
+
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+        - sid
