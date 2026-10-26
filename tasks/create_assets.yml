@@ -1,0 +1,17 @@
+---
+- name: Download some assets to localhost
+  local_action:
+    module: ansible.builtin.get_url
+    mode: 0644
+    url: "{{ item.url }}"
+    dest: "{{ item.path }}"
+    checksum: "{{ item.checksum }}"
+    force: false
+  run_once: true
+
+- name: Copy file to server
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    mode: 0644
