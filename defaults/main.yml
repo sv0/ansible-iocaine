@@ -7,6 +7,8 @@ os_supported:
     min_version: 3
     max_version: 4
 
+iocaine_metrics_port: 42042  # default
+iocaine_metrics_host: '127.0.0.1'  # default
 iocaine_port: 42069  # default
 iocaine_host: '127.0.0.1'  # default
 iocaine_version: '3.5.0'
